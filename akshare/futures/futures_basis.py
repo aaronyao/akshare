@@ -39,7 +39,8 @@ def futures_spot_price_daily(
     :param start_day: str 开始日期 format：YYYY-MM-DD 或 YYYYMMDD 或 datetime.date对象; 默认为当天
     :param end_day: str 结束数据 format：YYYY-MM-DD 或 YYYYMMDD 或 datetime.date对象; 默认为当天
     :param vars_list: list 合约品种如 [RB, AL]; 默认参数为所有商品
-    :return: pandas.DataFrame
+    :return: 基差
+    :rtype: pandas.DataFrame
     展期收益率数据:
     var               商品品种                      string
     sp                现货价格                      float
@@ -358,11 +359,11 @@ def futures_spot_price_previous(date: str = "20240430") -> pd.DataFrame:
 
 if __name__ == "__main__":
     futures_spot_price_daily_df = futures_spot_price_daily(
-        start_day="20240415", end_day="20240418", vars_list=["CU", "RB"]
+        start_day="20250708", end_day="20250709", vars_list=["BZ", "RB"]
     )
     print(futures_spot_price_daily_df)
 
-    futures_spot_price_df = futures_spot_price(date="20240430")
+    futures_spot_price_df = futures_spot_price(date="20250620")
     print(futures_spot_price_df)
 
     futures_spot_price_previous_df = futures_spot_price_previous(date="20240430")

@@ -316,14 +316,14 @@ def stock_zh_index_daily(symbol: str = "sh000922") -> pd.DataFrame:
     return temp_df
 
 
-def get_tx_start_year(symbol: str = "sh000919") -> pd.DataFrame:
+def get_tx_start_year(symbol: str = "sh000919") -> str:
     """
     腾讯证券-获取所有股票数据的第一天, 注意这个数据是腾讯证券的历史数据第一天
     https://gu.qq.com/sh000919/zs
     :param symbol: 带市场标识的股票代码
     :type symbol: str
     :return: 开始日期
-    :rtype: pandas.DataFrame
+    :rtype: str
     """
     url = "https://web.ifzq.gtimg.cn/other/klineweb/klineWeb/weekTrends"
     params = {
@@ -417,10 +417,12 @@ def stock_zh_index_daily_em(
     :return: 指数数据
     :rtype: pandas.DataFrame
     """
-    market_map = {"sz": "0", "sh": "1", "csi": "2"}
+    market_map = {"sz": "0", "sh": "1", "csi": "2", "bj": "0"}
     url = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
     if symbol.find("sz") != -1:
         secid = "{}.{}".format(market_map["sz"], symbol.replace("sz", ""))
+    elif symbol.find("bj") != -1:
+        secid = "{}.{}".format(market_map["bj"], symbol.replace("bj", ""))
     elif symbol.find("sh") != -1:
         secid = "{}.{}".format(market_map["sh"], symbol.replace("sh", ""))
     elif symbol.find("csi") != -1:
@@ -428,7 +430,6 @@ def stock_zh_index_daily_em(
     else:
         return pd.DataFrame()
     params = {
-        "cb": "jQuery1124033485574041163946_1596700547000",
         "secid": secid,
         "fields1": "f1,f2,f3,f4,f5",
         "fields2": "f51,f52,f53,f54,f55,f56,f57,f58",
@@ -438,10 +439,8 @@ def stock_zh_index_daily_em(
         "end": end_date,
     }
     r = requests.get(url, params=params)
-    data_text = r.text
-    data_json = demjson.decode(data_text[data_text.find("{") : -2])
+    data_json = r.json()
     temp_df = pd.DataFrame([item.split(",") for item in data_json["data"]["klines"]])
-    # check temp_df data availability before further transformations which may raise errors
     if temp_df.empty:
         return pd.DataFrame()
     temp_df.columns = ["date", "open", "close", "high", "low", "volume", "amount", "_"]
@@ -480,5 +479,5 @@ if __name__ == "__main__":
     stock_zh_index_daily_tx_df = stock_zh_index_daily_tx(symbol="sh000919")
     print(stock_zh_index_daily_tx_df)
 
-    stock_zh_index_daily_em_df = stock_zh_index_daily_em(symbol="sz399812")
+    stock_zh_index_daily_em_df = stock_zh_index_daily_em(symbol="bj899050")
     print(stock_zh_index_daily_em_df)
