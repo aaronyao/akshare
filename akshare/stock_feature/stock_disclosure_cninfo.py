@@ -7,10 +7,12 @@ http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search
 """
 
 import math
+import datetime
 from functools import lru_cache
-
+from typing import Optional
 import pandas as pd
 import requests
+from datetime import datetime,timedelta
 
 from akshare.utils.tqdm import get_tqdm
 
@@ -84,12 +86,13 @@ def stock_zh_a_disclosure_report_cninfo(
     symbol: str = "000001",
     market: str = "沪深京",
     keyword: str = "",
-    category: str = "",
-    start_date: str = "20230618",
-    end_date: str = "20231219",
+    category=None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
 ) -> pd.DataFrame:
     """
     巨潮资讯-首页-公告查询-信息披露公告
+    支持 category 传入单个字符串或字符串列表
     http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search
     :param symbol: 股票代码
     :type symbol: str
@@ -97,14 +100,14 @@ def stock_zh_a_disclosure_report_cninfo(
     :type market: str
     :param keyword: 关键词
     :type keyword: str
-    :param category: choice of {'年报', '半年报', '一季报', '三季报', '业绩预告', '权益分派',
+    :param category: str or list of str or tuple of str, 选项包括  {'年报', '半年报', '一季报', '三季报', '业绩预告', '权益分派',
     '董事会', '监事会', '股东大会', '日常经营', '公司治理', '中介报告',
      '首发', '增发', '股权激励', '配股', '解禁', '公司债', '可转债', '其他融资',
      '股权变动', '补充更正', '澄清致歉', '风险提示', '特别处理和退市', '退市整理期'}
     :type category: str
-    :param start_date: 开始时间
+    :param start_date: 开始时间。默认近3个月
     :type start_date: str
-    :param end_date: 开始时间
+    :param end_date: 结束时间，默认近3个月
     :type end_date: str
     :return: 指定 symbol 的数据
     :rtype: pandas.DataFrame
@@ -119,12 +122,48 @@ def stock_zh_a_disclosure_report_cninfo(
         "预披露": "pre_disclosure",
     }
     stock_id_map = ""
-    if market == "沪深京" or "基金":
+    if market == "沪深京" or market == "基金":
         stock_id_map = __get_stock_json(market)
     category_dict = __get_category_dict()
     url = "http://www.cninfo.com.cn/new/hisAnnouncement/query"
-    stock_item = "" if symbol == "" else f"{symbol},{stock_id_map[symbol]}"
-    category_item = "" if category == "" else f"{category_dict[category]}"
+    
+    # 支持多symbol
+    if isinstance(symbol, str):
+        symbol_list = [symbol]
+    elif isinstance(symbol, (list, tuple)):
+        symbol_list = list(symbol)
+    else:
+        raise ValueError("symbol 必须为字符串、字符串列表或元组")
+
+    if symbol_list and symbol_list[0] != "":
+        stock_item = ";".join([f"{s},{stock_id_map[s]}" for s in symbol_list])
+    else:
+        stock_item = ""
+        
+    # 支持多分类
+    if category is None or category == "":
+        category_item = ""
+    elif isinstance(category, str):
+        category_item = category_dict[category]
+    elif isinstance(category, (list, tuple)):
+        category_item = ";".join(
+            [category_dict[c] for c in category if c in category_dict]
+        )
+    else:
+        raise ValueError("category 必须为字符串、字符串列表或为空")
+
+    # 默认日期
+    if start_date is None and end_date is None:
+        today = datetime.now()
+        end_date = today.strftime("%Y%m%d")
+        start_date = (today - timedelta(days=90)).strftime("%Y%m%d")
+    elif start_date is not None and end_date is None:
+        today = datetime.now()
+        end_date = today.strftime("%Y%m%d")
+    elif end_date is not None and start_date is None:
+        end_dt = datetime.strptime(end_date, "%Y%m%d")
+        start_date = (end_dt - timedelta(days=90)).strftime("%Y%m%d")
+
     payload = {
         "pageNum": "1",
         "pageSize": "30",
