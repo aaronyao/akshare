@@ -33,7 +33,7 @@ def stock_gdfx_free_holding_statistics_em(
         "columns": "ALL",
         "source": "WEB",
         "client": "WEB",
-        "filter": f"""(HOLDNUM_CHANGE_TYPE="001")(END_DATE='{'-'.join([date[:4], date[4:6], date[6:]])}')""",
+        "filter": f"""(HOLDNUM_CHANGE_TYPE="001")(END_DATE='{"-".join([date[:4], date[4:6], date[6:]])}')""",
     }
     r = requests.get(url, params=params)
     data_json = r.json()
@@ -135,7 +135,7 @@ def stock_gdfx_holding_statistics_em(date: str = "20210930") -> pd.DataFrame:
         "columns": "ALL",
         "source": "WEB",
         "client": "WEB",
-        "filter": f"""(HOLDNUM_CHANGE_TYPE="001")(END_DATE='{'-'.join([date[:4], date[4:6], date[6:]])}')""",
+        "filter": f"""(HOLDNUM_CHANGE_TYPE="001")(END_DATE='{"-".join([date[:4], date[4:6], date[6:]])}')""",
     }
     r = requests.get(url, params=params)
     data_json = r.json()
@@ -274,6 +274,8 @@ def stock_gdfx_free_holding_change_em(date: str = "20210930") -> pd.DataFrame:
         "持有个股",
         "-",
         "-",
+        "-",
+        "-",
     ]
     big_df = big_df[
         [
@@ -362,6 +364,8 @@ def stock_gdfx_holding_change_em(date: str = "20210930") -> pd.DataFrame:
         "-",
         "持有个股",
         "流通市值统计",
+        "-",
+        "-",
     ]
     big_df = big_df[
         [
@@ -614,7 +618,7 @@ def stock_gdfx_holding_detail_em(
         "columns": "ALL",
         "source": "WEB",
         "client": "WEB",
-        "filter": f"""(HOLDER_NEWTYPE="{indicator}")(HOLDNUM_CHANGE_NAME="{symbol}")(END_DATE='{'-'.join([date[:4], date[4:6], date[6:]])}')""",
+        "filter": f"""(HOLDER_NEWTYPE="{indicator}")(HOLDNUM_CHANGE_NAME="{symbol}")(END_DATE='{"-".join([date[:4], date[4:6], date[6:]])}')""",
     }
     r = requests.get(url, params=params)
     data_json = r.json()
